@@ -1,34 +1,34 @@
 #include <LiquidCrystal.h>
 #include <Keypad.h>
 
-// Definițiile pentru LCD
+// Definitions for LCD
 const int rs = 33, en = 34, d4 = 35, d5 = 36, d6 = 37, d7 = 38;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
-// Definițiile pentru tastatură
-const byte ROWS = 4; //patru rânduri
-const byte COLS = 4; //patru coloane
+// Definitions for the keypad
+const byte ROWS = 4; //four rows
+const byte COLS = 4; //four columns
 char keys[ROWS][COLS] = {
   {'1','2','3','A'},
   {'4','5','6','B'},
   {'7','8','9','C'},
   {'*','0','#','D'}
 };
-byte rowPins[ROWS] = {22, 23, 24, 25}; //pinii de la Arduino la pinii randurilor
-byte colPins[COLS] = {26, 27, 28, 29}; //pinii de la Arduino la pinii coloanelor
+byte rowPins[ROWS] = {22, 23, 24, 25}; //pins from Arduino to row pins
+byte colPins[COLS] = {26, 27, 28, 29}; //pins from Arduino to column pins
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
-// Definițiile pinilor pentru celelalte componente
+// Pin definitions for other components
 const int buzzerPin = 30;
 const int ledPin = 31;
 const int pirPin = 32;
 
-// Variabile pentru gestionarea codului de acces și a stării alarmei
-String inputCode = ""; // Codul introdus de utilizator
-String correctCode = "2017"; // Codul corect pentru activarea/dezactivarea alarmei
-bool alarmActive = false; // Starea alarmei ON/OFF
-bool alarmTriggered = false; //verificarea daca alarma este declansată
-int attemptCounter = 0; // Contor pentru numărul de încercări greșite
+// Variables for managing the access code and the state of the alarm
+String inputCode = ""; // Code entered by the user
+String correctCode = "2017"; // Correct code for activating/deactivating the alarm
+bool alarmActive = false; // Alarm state ON/OFF
+bool alarmTriggered = false; // check if the alarm is triggered
+int attemptCounter = 0; // Counter for the number of wrong attempts
 
 void setup() {
   Serial.begin(9600);
@@ -51,53 +51,52 @@ void loop() {
 void handleKeypad() {
   char key = keypad.getKey();
   if (key) {
-    beep(30, 500); // Emite un sunet scurt la apăsarea oricărei taste
-    if (key == '#') { // Tasta pentru validarea codului tastat
+    beep(30, 500); // Emit a short sound when any key is pressed
+    if (key == '#') { // Key to validate the entered code
       checkCode();
     } else if (isDigit(key)) {
-      if (inputCode.length() < 4) { // Verificarea lungimii codului tastat
+      if (inputCode.length() < 4) { // Check the length of the entered code
         inputCode += key;
-        lcd.setCursor(6 + inputCode.length(), 1); // Mută cursorul pe LCD
+        lcd.setCursor(6 + inputCode.length(), 1); // Move the cursor on LCD
         lcd.print(key);
-      } else { // Un cod mai lung de 4 cifre va afișa o eroare și se va reseta
+      } else { // A code longer than 4 digits will display an error and will reset
         beep(50, 200);
         showError("Type 4 digits!");
         inputCode = "";
       }
-    } // Ignoră alte taste apăsate
+    } // Ignore other pressed keys
   }
 }
 
 void checkCode() {
   if (inputCode == correctCode) {
-    beep(200, 1000); // Sunet de confirmare
+    beep(200, 1000); // Confirmation sound
     resetLcdSecondRow();
-    attemptCounter = 0; // Resetare contor încercări greșite
+    attemptCounter = 0; // Reset wrong attempt counter
     alarmTriggered = false;
-    toggleAlarm(); // Activează sau dezactivează alarma
+    toggleAlarm(); // Activate or deactivate the alarm
   } else {
     attemptCounter++;
     beep(50, 200);
     showError("Wrong Code!");
-    if (attemptCounter >= 3 && !alarmTriggered) { // Declanșează alarma după 3 coduri greșite
+    if (attemptCounter >= 3 && !alarmTriggered) { // Trigger the alarm after 3 wrong codes
       alarmActive = true;
       triggerAlarm();
     }
   }
-  inputCode = ""; // Resetează codul introdus
+  inputCode = ""; // Reset the entered code
   resetLcdSecondRow();
 }
-
 
 void toggleAlarm() {
   alarmActive = !alarmActive;
   lcd.setCursor(0, 0);
   lcd.print(alarmActive ? "Alarm: ON       " : "Alarm: OFF      ");
   if (alarmActive) {
-    // Blink LED și beep pentru 10 secunde
+    // Blink LED and beep for 10 seconds
     for (int i = 0; i < 10; i++) {
       digitalWrite(ledPin, HIGH);
-      beep(50, 600); // Sunet de 1 secundă
+      beep(50, 600); // Sound for 1 second
       digitalWrite(ledPin, LOW);
       delay(1000);
     }
@@ -106,26 +105,26 @@ void toggleAlarm() {
 
 void checkMotion() {
   if (digitalRead(pirPin) == HIGH) {
-    // Dacă detectează mișcare
-    digitalWrite(ledPin, HIGH); // Aprinde LED-ul
+    // If motion is detected
+    digitalWrite(ledPin, HIGH); // Turn on the LED
     beep(50, 800);
-    delay(2000); // Așteaptă 2 secunde pentru a verifica dacă mișcarea persistă
+    delay(2000); // Wait 2 seconds to check if the motion persists
     if (digitalRead(pirPin) == HIGH) {
-      // Dacă mișcarea încă este detectată
+      // If the motion is still detected
       long startDeactivationTime = millis();
-      while(millis() - startDeactivationTime <= 10000 && alarmActive){ // Timp de 10 secunde
+      while(millis() - startDeactivationTime <= 10000 && alarmActive){ // For 10 seconds
         handleKeypad();
-        if(millis() % 1000 == 0){ // Blink si beep o data la o secundă
+        if(millis() % 1000 == 0){ // Blink and beep once a second
           digitalWrite(ledPin, HIGH);
           beep(50, 600);
           digitalWrite(ledPin, LOW);
         }
       }
       if(millis() - startDeactivationTime > 10000 && alarmActive)
-        // Dacă după cele 10 secunde nu a fost introdus codul corect, declanșeză alarma
+        // If after 10 seconds the correct code has not been entered, trigger the alarm
         triggerAlarm();
     }
-    digitalWrite(ledPin, LOW); // Dacă mișcarea nu a persistat, stinge LED-ul
+    digitalWrite(ledPin, LOW); // If the motion did not persist, turn off the LED
   }
 }
 
@@ -133,10 +132,10 @@ void triggerAlarm() {
   alarmTriggered = true;
   lcd.setCursor(0, 0);
   lcd.print("Alarm: Triggered");
-  while(alarmTriggered){ // Cât timp alarma este declanșată
+  while(alarmTriggered){ // While the alarm is triggered
     handleKeypad();
     if(millis() % 200 == 0){
-      // Sunet de alarma si blink la fiecare 200 de milisecunde
+      // Alarm sound and blink every 200 milliseconds
       digitalWrite(ledPin, HIGH);
       beep(100, 1500);
       digitalWrite(ledPin, LOW);
@@ -145,11 +144,10 @@ void triggerAlarm() {
 }
 
 void showError(String message) {
-  
   if(!alarmTriggered){
-  long errorTimer = millis();
+    long errorTimer = millis();
     while(millis() - errorTimer <= 2000){
-      // Afișează mesajul de eroare timp de 2 secunde
+      // Display the error message for 2 seconds
       lcd.setCursor(0, 1);
       lcd.print(message);
     }
@@ -158,14 +156,14 @@ void showError(String message) {
 }
 
 void beep(unsigned int duration, unsigned int frequency) {
-  // Emite un sunet de o anumita frecvență pentru o anumită durată
+  // Emit a sound of a certain frequency for a certain duration
   tone(buzzerPin, frequency);
   delay(duration);
   noTone(buzzerPin);
 }
 
 void resetLcdSecondRow(){
-  // Resetează al doilea rând al LCD-ului dupa un cod greșit sau o eroare
+  // Reset the second row of the LCD after a wrong code or an error
   lcd.setCursor(0, 1);
   lcd.print("Code:         ");
 }
