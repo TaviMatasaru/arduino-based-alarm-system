@@ -99,3 +99,13 @@ By carrying out this project, I learned that the Arduino platform is very extens
 ### 5.3 Resources
 - [Project Code: Pastebin link](https://pastebin.com/mYzT9mv7)
 - [Keypad Library: Arduino Reference](https://www.arduino.cc/reference/en/libraries/keypad/)
+
+### 6 Images
+
+![Arduino Setup 1](images/1.jpg)
+![Arduino Setup 2](images/2.jpg)
+![Arduino Setup 3](images/3.jpg)
+![Arduino Setup 4](images/4.jpg)
+![Arduino Setup 5](images/5.jpg)
+![Arduino Setup 6](images/6.jpg)
+![Arduino Setup 7](images/7.jpg)
