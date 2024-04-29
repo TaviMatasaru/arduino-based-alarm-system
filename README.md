@@ -102,10 +102,10 @@ By carrying out this project, I learned that the Arduino platform is very extens
 
 ### 6 Images
 
-![Arduino Setup 1](images/1.jpg)
-![Arduino Setup 2](images/2.jpg)
-![Arduino Setup 3](images/3.jpg)
-![Arduino Setup 4](images/4.jpg)
-![Arduino Setup 5](images/5.jpg)
-![Arduino Setup 6](images/6.jpg)
-![Arduino Setup 7](images/7.jpg)
+![Arduino Setup 1](images/1.jpeg)
+![Arduino Setup 2](images/2.jpeg)
+![Arduino Setup 3](images/3.jpeg)
+![Arduino Setup 4](images/4.jpeg)
+![Arduino Setup 5](images/5.jpeg)
+![Arduino Setup 6](images/6.jpeg)
+![Arduino Setup 7](images/7.jpeg)
